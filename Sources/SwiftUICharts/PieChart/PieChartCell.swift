@@ -51,6 +51,7 @@ public struct PieChartCell : View {
                 Text("\(String(format: "%.0f", self.percentage))%")
                     .font(.caption)
                     .offset(self.triangleAngle.degrees != 360 ? self.getTriangleCenterOffsetWith(percentage: 0.75) : .zero)
+                    .foregroundColor(.black)
             }
                 }.scaleEffect(self.show ? 1 : 0)
             .animation(Animation.spring().delay(Double(self.index) * 0.04))

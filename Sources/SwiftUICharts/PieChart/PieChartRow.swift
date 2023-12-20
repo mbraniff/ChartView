@@ -11,13 +11,13 @@ import SwiftUI
 public struct PieChartRow : View {
     var data: [DataPoint]
     var backgroundUIColor: UIColor
-    var accentUIColor: UIColor
+    var uiColors: [UIColor]
     
     var backgroundColor: Color {
-        return Color(backgroundUIColor) ?? .clear
+        return Color(backgroundUIColor) 
     }
-    var accentColor: Color {
-        return Color(accentUIColor) ?? .clear
+    var colors: [Color] {
+        return self.uiColors.map{ Color($0) }
     }
     
     var slices: [PieSlice] {
@@ -37,18 +37,18 @@ public struct PieChartRow : View {
     }
     
     var colorGradient: [Color] {
-        let gradientArray = GradientArray(startColor: self.accentUIColor)
-        return gradientArray.getArray(count: self.slices.count, maxPercentage: 0.6)
+        var gradientArray = self.uiColors.count == 1 ? GradientArray(startColor: uiColors[0]).getArray(count: self.slices.count, maxPercentage: 0.8) : MultiGradientArray(colors: self.uiColors).getArray(count: self.slices.count)
+        return gradientArray
     }
     
     @Binding var showIndex: Int?
     @Binding var touchLocation: CGPoint?
     var touchesEnabled: Bool
     
-    public init(data: [DataPoint], backgroundColor: UIColor, accentColor: UIColor, showIndex: Binding<Int?>, touchLocation: Binding<CGPoint?>, touchesEnabled: Bool = true) {
+    public init(data: [DataPoint], backgroundColor: UIColor, colors: [UIColor], showIndex: Binding<Int?>, touchLocation: Binding<CGPoint?>, touchesEnabled: Bool = true) {
         self.data = data
         self.backgroundUIColor = backgroundColor
-        self.accentUIColor = accentColor
+        self.uiColors = colors
         self._showIndex = showIndex
         self._touchLocation = touchLocation
         self.touchesEnabled = touchesEnabled
@@ -69,12 +69,10 @@ public struct PieChartRow : View {
     public var body: some View {
         HStack(alignment: .center) {
             GeometryReader { geometry in
-                ZStack{
-                    ForEach(0..<self.slices.count, id: \.self){ i in
-                        PieChartCell(rect: geometry.frame(in: .local), startDeg: self.slices[i].startDeg, endDeg: self.slices[i].endDeg, index: i, backgroundColor: self.backgroundColor,accentColor: self.colorGradient[i])
-                            .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
-                            .animation(Animation.spring())
-                    }
+                ForEach(0..<self.slices.count, id: \.self){ i in
+                    PieChartCell(rect: geometry.frame(in: .local), startDeg: self.slices[i].startDeg, endDeg: self.slices[i].endDeg, index: i, backgroundColor: self.backgroundColor,accentColor: self.colorGradient[i])
+                        .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
+                        .animation(Animation.spring(), value: self.currentTouchedIndex)
                 }
                 .gesture(self.touchesEnabled ? AnyGesture(DragGesture()
                     .onChanged({ value in
@@ -96,14 +94,16 @@ public struct PieChartRow : View {
                     })
                 ) : AnyGesture(DragGesture().onChanged({ _ in }).onEnded({ _ in })))
             }
+            
             VStack(alignment: .leading) {
                 ForEach(0..<self.slices.count, id: \.self) { i in
                     HStack {
                         Rectangle().frame(width: 10, height: 10).foregroundColor(self.colorGradient[i])
                             .border(.black)
                         Text(data[i].name)
-                    }.scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
-                    .animation(Animation.spring())
+                    }
+                    .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
+                    .animation(Animation.spring(), value: self.currentTouchedIndex)
                     .blur(radius: self.currentTouchedIndex != -1 ? self.currentTouchedIndex != i ? 0.85 : 0 : 0)
                 }
             }
@@ -127,14 +127,15 @@ extension Array where Element == PieChartRow.DataPoint {
     }
 }
 
+
 #if DEBUG
 struct PieChartRow_Previews : PreviewProvider {
     static let data1 = Array(integers: [8,23,54,32,12,37,7,23,43])
     static let data2 = Array(integers: [0])
     static var previews: some View {
         Group {
-            PieChartRow(data:data1, backgroundColor: UIColor(red: 252.0/255.0, green: 236.0/255.0, blue: 234.0/255.0, alpha: 1.0), accentColor: UIColor(red: 225.0/255.0, green: 97.0/255.0, blue: 76.0/255.0, alpha: 1.0), showIndex: Binding.constant(nil), touchLocation: Binding.constant(nil))
-            PieChartRow(data:data2, backgroundColor: UIColor(red: 252.0/255.0, green: 236.0/255.0, blue: 234.0/255.0, alpha: 1.0), accentColor: UIColor(red: 225.0/255.0, green: 97.0/255.0, blue: 76.0/255.0, alpha: 1.0), showIndex: Binding.constant(nil), touchLocation: Binding.constant(nil))
+            PieChartRow(data:data1, backgroundColor: UIColor(red: 252.0/255.0, green: 236.0/255.0, blue: 234.0/255.0, alpha: 1.0), colors: [UIColor(red: 225.0/255.0, green: 97.0/255.0, blue: 76.0/255.0, alpha: 1.0), .blue, .green, .yellow], showIndex: Binding.constant(nil), touchLocation: Binding.constant(nil))
+            PieChartRow(data:data2, backgroundColor: UIColor(red: 252.0/255.0, green: 236.0/255.0, blue: 234.0/255.0, alpha: 1.0), colors: [UIColor(red: 225.0/255.0, green: 97.0/255.0, blue: 76.0/255.0, alpha: 1.0)], showIndex: Binding.constant(nil), touchLocation: Binding.constant(nil))
         }
     }
 }

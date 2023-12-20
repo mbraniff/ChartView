@@ -13,13 +13,13 @@ public struct GradientArray {
     let endColor: UIColor?
     let autoFraction: Bool
     
-    init(startColor: UIColor, endColor: UIColor? = nil, autoFraction: Bool = true) {
+    public init(startColor: UIColor, endColor: UIColor? = nil, autoFraction: Bool = true) {
         self.startColor = startColor
         self.endColor = endColor
         self.autoFraction = autoFraction
     }
     
-    func getArray(count: Int, maxPercentage: Double = 1.0) -> [Color] {
+    public func getArray(count: Int, maxPercentage: Double = 1.0) -> [Color] {
         var gradientArray = [Color]()
         
         var overrideFraction: Double? = nil
@@ -52,6 +52,32 @@ public struct GradientArray {
         }
         
         return gradientArray
+    }
+}
+
+public struct MultiGradientArray {
+    var colors: [UIColor]
+    
+    func getArray(count: Int) -> [Color] {
+        if colors.count == 0 {
+            return []
+        }
+        
+        let colorCount = colors.count
+        if count <= colorCount {
+            return colors.prefix(count).map { Color($0) }
+        }
+        
+        var gradient: [Color] = [Color(colors[0])]
+        let increment: Double = Double(colors.count - 1) / Double(count - 1)
+        for i in 1..<count {
+            let interpolation = Double(i) * increment
+            let lower = floor(interpolation)
+            let upper = ceil(interpolation)
+            let interpolationPercent = interpolation - lower
+            gradient.append(Color(colors[Int(lower)].interpolate(to: colors[Int(upper)], fraction: interpolationPercent)))
+        }
+        return gradient
     }
 }
 
