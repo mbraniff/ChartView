@@ -12,6 +12,7 @@ public struct PieChartRow : View {
     var data: [DataPoint]
     var backgroundUIColor: UIColor
     var uiColors: [UIColor]
+    var legendColor: Color
     
     var backgroundColor: Color {
         return Color(backgroundUIColor) 
@@ -45,10 +46,11 @@ public struct PieChartRow : View {
     @Binding var touchLocation: CGPoint?
     var touchesEnabled: Bool
     
-    public init(data: [DataPoint], backgroundColor: UIColor, colors: [UIColor], showIndex: Binding<Int?>, touchLocation: Binding<CGPoint?>, touchesEnabled: Bool = true) {
+    public init(data: [DataPoint], backgroundColor: UIColor, colors: [UIColor], showIndex: Binding<Int?>, touchLocation: Binding<CGPoint?>, legendColor: Color, touchesEnabled: Bool = true) {
         self.data = data
         self.backgroundUIColor = backgroundColor
         self.uiColors = colors
+        self.legendColor = legendColor
         self._showIndex = showIndex
         self._touchLocation = touchLocation
         self.touchesEnabled = touchesEnabled
@@ -98,10 +100,13 @@ public struct PieChartRow : View {
             VStack(alignment: .leading) {
                 ForEach(0..<self.slices.count, id: \.self) { i in
                     HStack {
-                        Rectangle().frame(width: 10, height: 10).foregroundColor(self.colorGradient[i])
+                        Rectangle()
+                            .frame(width: 10, height: 10)
+                            .foregroundColor(self.colorGradient[i])
                             .border(.black)
                         Text(data[i].name)
                     }
+                    .foregroundColor(legendColor)
                     .scaleEffect(self.currentTouchedIndex == i ? 1.1 : 1)
                     .animation(Animation.spring(), value: self.currentTouchedIndex)
                     .blur(radius: self.currentTouchedIndex != -1 ? self.currentTouchedIndex != i ? 0.85 : 0 : 0)
@@ -123,7 +128,7 @@ public struct PieChartRow : View {
 
 extension Array where Element == PieChartRow.DataPoint {
     init(integers: [IntegerLiteralType]) {
-        self = integers.map { PieChartRow.DataPoint(value: Double($0)) }
+        self = integers.map { PieChartRow.DataPoint(value: Double($0), name: "Thing \($0)") }
     }
 }
 
@@ -134,8 +139,8 @@ struct PieChartRow_Previews : PreviewProvider {
     static let data2 = Array(integers: [0])
     static var previews: some View {
         Group {
-            PieChartRow(data:data1, backgroundColor: UIColor(red: 252.0/255.0, green: 236.0/255.0, blue: 234.0/255.0, alpha: 1.0), colors: [UIColor(red: 225.0/255.0, green: 97.0/255.0, blue: 76.0/255.0, alpha: 1.0), .blue, .green, .yellow], showIndex: Binding.constant(nil), touchLocation: Binding.constant(nil))
-            PieChartRow(data:data2, backgroundColor: UIColor(red: 252.0/255.0, green: 236.0/255.0, blue: 234.0/255.0, alpha: 1.0), colors: [UIColor(red: 225.0/255.0, green: 97.0/255.0, blue: 76.0/255.0, alpha: 1.0)], showIndex: Binding.constant(nil), touchLocation: Binding.constant(nil))
+            PieChartRow(data:data1, backgroundColor: UIColor(red: 252.0/255.0, green: 236.0/255.0, blue: 234.0/255.0, alpha: 1.0), colors: [UIColor(red: 225.0/255.0, green: 97.0/255.0, blue: 76.0/255.0, alpha: 1.0), .blue, .green, .yellow], showIndex: Binding.constant(nil), touchLocation: Binding.constant(nil), legendColor: .green)
+            PieChartRow(data:data2, backgroundColor: UIColor(red: 252.0/255.0, green: 236.0/255.0, blue: 234.0/255.0, alpha: 1.0), colors: [UIColor(red: 225.0/255.0, green: 97.0/255.0, blue: 76.0/255.0, alpha: 1.0)], showIndex: Binding.constant(nil), touchLocation: Binding.constant(nil), legendColor: .purple)
         }
     }
 }
